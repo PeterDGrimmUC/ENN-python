@@ -2,6 +2,7 @@ import pandas as pd
 import datetime
 import pandas_datareader.data as web
 import numpy as np
+from sklearn import preprocessing
 
 class marketData:
     def __init__(self, ticker):
@@ -24,5 +25,5 @@ class marketData:
                 tmpOutputData.append(closeData[d + (inputs*dt_Inputs) + (o * dt_Outputs)]/np.mean(tmpInputData))
             inputData.append(tmpInputData)
             outputData.append(tmpOutputData)
-        return (inputData,outputData)
+        return (preprocessing.scale(inputData),outputData)
 
