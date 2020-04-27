@@ -1,6 +1,6 @@
 from ENN.EXAMMV2 import *
 import marketData
-inputs = 20
+inputs = 30
 outputs = 1
 dt_outputs = 1
 dt_inputs = 1
@@ -12,7 +12,7 @@ cutoff = .9
 c1 = .6
 c2 = .3
 c3 = .1
-epochs = 10
+epochs = 1
 learningRate = .02
 maxGens = 10
 master.set_trainingData(inputData, labelData)

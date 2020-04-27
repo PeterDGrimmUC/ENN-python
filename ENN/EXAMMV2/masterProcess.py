@@ -835,10 +835,11 @@ class masterProcess:
         cutoff = c0
         mutationMult = np.ones(initPop)
         specTarget = math.floor((initPop) * speciationTarget)
+        p = Pool()
         for _ in range(0,initPop):
             instances.append(self.newInitGenome())
         for currGeneration in range(0,maxGens):
-            p = Pool()
+            p.restart()
             for ind,genin in enumerate(instances):
                 genin.epochMult = self.randomMutationSpecial(genin, mutationMult[ind])
             speciesList = self.speciate(instances, cutoff, c1,c2,c3, speciesStartList = speciesStartList)
@@ -858,12 +859,12 @@ class masterProcess:
             (specFitnessArr,speciesList) = self.intraSpeciesSelectionFeedback(speciesList, topNSpecRat)
             #(instances,speciesStartList,mutationMult) = self.repopulateFeedback(speciesList,specFitnessArr,initPop)
             (instances,speciesStartList,mutationMult) = self.repopulateParallel(speciesList,specFitnessArr,initPop,p)
-            p.close()
-            p.join()
             #print(cutoff)
             #print(cutoff)
             print(specFitnessArr)
             #print(cutoff)
+            p.close()
+            p.join()
         self.bestGenome = max(instances + [n for sub in speciesList for n in sub],key= lambda x:x.fitness)
         #best.printTopology()
 
