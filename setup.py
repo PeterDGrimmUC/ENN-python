@@ -9,5 +9,5 @@ setup(name='ENN',
       packages=['ENN'],
       install_requires=[
           'numpy', 'random','math', 'itertools','threading','multiprocessing','enum','dill','cProfile','threading','importlib','pathos'
-      ]
+      ],
       zip_safe=False)

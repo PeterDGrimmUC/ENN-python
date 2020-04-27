@@ -1,15 +1,15 @@
+from ENN.EXAMMV2.network import * 
 import math
 import numpy as np
 import random as rand
 from itertools import groupby
 from enum import Enum
 import pdb
-from sklearn import preprocessing
 import threading
 import multiprocessing
-randomVal = lambda : rand.uniform(0,1)
-from network import *
 import dill
+
+# Enums
 class activationFuncs(Enum):
     SIGMOID=lambda x: 1/(1+math.exp(-x))
     TANH = lambda x: (math.exp(x)-math.exp(-x))/(math.exp(x)+math.exp(-x))
@@ -58,9 +58,6 @@ class node:
         newOutps = []
         return node(newNodeNum, depth = self.depth, bias = newBias,nodeType=self.nodeType)
 
-    def stat(self):
-        print(self.__str__())
-
 class masterNode:
     def __init__(self,nodeNum, depth, nodeType):
         self.nodeNum = nodeNum
@@ -69,19 +66,16 @@ class masterNode:
         self.inputConnections = []
         self.outputConnections = []
         self.activationFunction = activationFuncs.SIGMOID
-        self.enabled = True
 
     def __repr__(self):
         return 'NodeNum: %i, depth = %f' %(self.nodeNum, self.depth)
-    def enable(self):
-        self.enabled = True
-    def disable(self):
-        self.enabled = False
+
     def addConnection(self,connectionIn,connectionType):
         if connectionType == 'Input':
             self.inputConnections.append(connectionIn)
         elif connectionType == 'Output':
             self.outputConnections.append(connectionIn)
+
     def stat(self):
         print(self.__str__())
 
@@ -120,10 +114,13 @@ class connection:
 
     def __repr__(self):
         return "ID: %i, IO (%i,%i),en=%r" % (self.innovNum, self.inputNode.nodeNum,self.outputNode.nodeNum,self.enabled)
+
     def enable(self):
         self.enabled = True
+
     def disable(self):
         self.enabled = False
+
 class masterConnection:
     def __init__(self, innovNum, inputNode, outputNode, connectionType=connectionTypes.STANDARD):
         self.innovNum = innovNum
@@ -135,10 +132,6 @@ class masterConnection:
         return connection(self.innovNum, self.inputNode.createChildCopy(), self.outputNode.createChildCopy(),weight = rand.uniform(-.5,.5))
     def __repr__(self):
         return "ID: %i, IO (%i,%i)" % (self.innovNum, self.inputNode.nodeNum,self.outputNode.nodeNum)
-    def enable(self):
-        self.enabled = True
-    def disable(self):
-        self.enabled = False
 
 class masterGenome:
     def __init__(self,inputs,outputs):
@@ -226,6 +219,7 @@ class masterGenome:
     def get_innovNum(self):
         self.numConnections += 1
         return self.numConnections -1
+
     def checkConnectionExists(self,childInputNode,childOutputNode):
         masterInputNode = self.nodeGenes[childInputNode.nodeNum]
         masterOutputNode = self.nodeGenes[childOutputNode.nodeNum]
@@ -233,6 +227,7 @@ class masterGenome:
             if conn.outputNode.nodeNum == masterOutputNode.nodeNum:
                 return connection(conn.innovNum, childInputNode,childOutputNode,weight=rand.uniform(-.5,.5))
         return None
+
     def copy(self, ID):
         nodeGenes = []
         connectionGenes = []
@@ -246,7 +241,6 @@ class masterGenome:
             connectionGenes.append(newConn)
             inputNode.outputConnections.append(newConn)
             outputNode.inputConnections.append(newConn)
-        #pdb.set_trace()
         return genome(ID, self.inputs,self.outputs,nodeGenes = nodeGenes, connectionGenes = connectionGenes)
 
 class genome:
@@ -269,7 +263,6 @@ class genome:
             connectionCopies.append(newConn)
             nodeCopies[refDict[conn.inputNode.nodeNum]].outputConnections.append(conn)
             nodeCopies[refDict[conn.outputNode.nodeNum]].inputConnections.append(conn)
-        #pdb.set_trace()
         return genome(ID,self.inputs,self.outputs, nodeGenes=nodeCopies,connectionGenes=connectionCopies)
 
     def addConnection(self,connectionIn,weight=-1):
@@ -285,22 +278,23 @@ class genome:
     def train(self,inputData,outputData,epochs,learningRate):
         self.net.train(inputData,outputData,epochs,learningRate)
 
-    def getFitness(self,inputData,outputData):
+    def getFitness(self,inputData,outputData) -> None:
         self.net.evaluate(inputData,outputData)
         self.fitness = self.net.evalutateFitness()
 
 
-    def verifyStructure(self):
+    def verifyStructure(self) -> bool:
         inputNodesInConnections = [n.inputNode for n in self.connectionGenes if n.enabled ==True]
         outputNodesInConnections = [n.outputNode for n in self.connectionGenes if n.enabled ==True]
         totalEnabledNodesInConnections = list(set(inputNodesInConnections).union(set(outputNodesInConnections)))
         enabledNodes = [n for n in self.nodeGenes if n.enabled == True]
         for currNode in enabledNodes:
             if currNode not in totalEnabledNodesInConnections:
-                pdb.set_trace()
+                return False
+        return True
 
 
-    def printTopology(self):
+    def printTopology(self) -> None:
         outStr = "Genome" + str(self.ID) + "topology: \n"
         sortedByDepth = sorted([n for n in self.nodeGenes if n.enabled is True], key = lambda x: x.depth)
         for currNode in sortedByDepth:
@@ -310,7 +304,8 @@ class genome:
                     outStr+= str(innov.outputNode.nodeNum) + ", "
             outStr += "] \n"
         print(outStr)
-    def printReverseTopology(self):
+
+    def printReverseTopology(self) -> None:
         outStr = "Genome" + str(self.ID) + "reverse topology: \n"
         sortedByDepth = sorted([n for n in self.nodeGenes if n.enabled is True], key = lambda x: x.depth,reverse=True)
         for currNode in sortedByDepth:

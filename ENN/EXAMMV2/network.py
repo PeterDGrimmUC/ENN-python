@@ -1,7 +1,4 @@
-try:
-    from ENN.EXAMM.dataStructs import *
-except:
-    from dataStructs import *
+from ENN.EXAMMV2.dataStructs import *
 from itertools import groupby
 import numpy as np
 import pdb
@@ -15,6 +12,7 @@ class network:
         self.dL_Do = lambda o,t: o-t # MSE derivative
         #self.dPhi_dnet = lambda o: 1-np.square(o) #htan deriv
         self.dPhi_dnet = lambda o: np.multiply(o,(1-o)) # logistic deriv
+        self.complexityDependence = .2
 
     def parseGenome(self):
         # get enabled nodes and connections
@@ -30,7 +28,6 @@ class network:
         for _, g in groupby(self.connections, lambda x : x.outputNode.nodeNum):
             self.connectionMap.append(list(g))
         # sort by output node depth
-        #pdb.set_trace()
         self.connectionMap.sort(key = lambda x : x[0].outputNode.depth)
         self.nodes.sort(key = lambda x : x.nodeNum)
         self.nodes.sort(key = lambda x : x.depth)
@@ -43,7 +40,6 @@ class network:
         self.backPropConnectionMap.sort(key = lambda x : x[0].inputNode.depth,reverse=True)
 
     def feedForward(self,inputData):
-        #pdb.set_trace()
         net = np.zeros(len(self.nodes))
         net[0:self.inputs] = inputData
         for ind,currNode in enumerate(self.connectionMap):
@@ -54,15 +50,11 @@ class network:
         return net[-self.outputs:]
     def backProp(self,inputData,inputLabel,learningRate):
         # feed forward
-        #pdb.set_trace()
         net = np.zeros(len(self.nodes))
         net[0:self.inputs] = inputData
         for ind,currNode in enumerate(self.connectionMap):
             for conn in currNode:
-                try:
-                    net[self.structureLUT[conn.outputNode.nodeNum]] += conn.weight * net[self.structureLUT[conn.inputNode.nodeNum]]
-                except:
-                    pdb.set_trace()
+                net[self.structureLUT[conn.outputNode.nodeNum]] += conn.weight * net[self.structureLUT[conn.inputNode.nodeNum]]
             net[self.structureLUT[conn.outputNode.nodeNum]] = self.activationFunction(net[self.structureLUT[conn.outputNode.nodeNum]] + self.nodes[self.structureLUT[currNode[0].outputNode.nodeNum]].bias)
         delta = np.zeros(len(net))
         nodeLen = len(net)-1
@@ -75,21 +67,22 @@ class network:
             conn.weight += -learningRate * net[self.structureLUT[conn.inputNode.nodeNum]] * delta[self.structureLUT[conn.outputNode.nodeNum]]
         for currNode in self.nodes:
             currNode.bias += -learningRate * delta[self.structureLUT[currNode.nodeNum]]
+
     def train(self,inputVec, outputVec,epochs,learningRate):
         for epoch in range(0,epochs):
             for ind,data in enumerate(inputVec):
                 self.backProp(data,outputVec[ind],learningRate)
+
     def evaluate(self,inputVec,outputVec):
-        #pdb.set_trace()
         MSE = np.zeros(len(inputVec))
         for ind,data in enumerate(inputVec):
             output = self.feedForward(data)
             MSE[ind] = np.mean(np.square(output - np.array(outputVec[ind])))
         self.MSE = np.mean(MSE)
         return self.MSE
+
     def evalutateFitness(self):
-        return 1/self.MSE - .5*(1/self.MSE * 1/self.getComplexity()) #* 1/(len([n for n in self.nodes]))
+        return 1/self.MSE - self.complexityDependence*(1/self.MSE * 1/self.getComplexity())
     def getComplexity(self):
         c =  len(self.connections)/(self.inputs * self.outputs)
-        #print(c)
         return c

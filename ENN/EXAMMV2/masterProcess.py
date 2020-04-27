@@ -1,15 +1,10 @@
-try:
-    from ENN.EXAMMV2.dataStructs import *
-    from ENN.EXAMMV2.network import *
-except:
-    from dataStructs import *
-    #from network import *
-import logging
-from dataStructs import *
+from ENN.EXAMMV2.dataStructs import *
+from ENN.EXAMMV2.network import *
 from multiprocessing import Process,Queue,cpu_count,Pipe
 from pathos.multiprocessing import ProcessingPool as Pool
 # This version trades computational complexity for space complexity, requires more space but less calculations
 # each genome node and connection contains all information needed to carry out mutations
+randomVal = lambda : rand.uniform(-.5,.5)
 class masterProcess:
     def __init__(self, inputs,outputs):
         # inputs and outputs
@@ -184,7 +179,6 @@ class masterProcess:
         # disable node in genome
         [n.disable() for n in (nodeRef.inputConnections + nodeRef.outputConnections)]
         nodeRef.disable()
-        #pdb.set_trace()
 
     def enableNode(self,nodeRef) -> None:
         # disable node in genome
