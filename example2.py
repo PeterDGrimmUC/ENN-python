@@ -1,13 +1,18 @@
 from ENN.EXAMMV2 import *
-master = masterProcess(3,2)
-inputData = [[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]]
-labelData = [[0,0],[0,1],[0,1],[1,0],[0,1],[1,0],[1,0],[1,1]]
-initPopulation = 500
+import marketData
+inputs = 20
+outputs = 1
+dt_outputs = 1
+dt_inputs = 1
+datSrc = marketData.marketData("spy")
+(inputData,labelData) = datSrc.parsePriceData(inputs,outputs,dt_inputs,dt_outputs)
+master = masterProcess(inputs,outputs)
+initPopulation = 10
 cutoff = .9
 c1 = .6
 c2 = .3
 c3 = .1
-epochs = 200
+epochs = 10
 learningRate = .2
 maxGens = 10
 master.set_trainingData(inputData, labelData)

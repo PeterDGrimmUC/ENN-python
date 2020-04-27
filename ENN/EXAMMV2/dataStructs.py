@@ -1,4 +1,4 @@
-from ENN.EXAMMV2.network import * 
+from ENN.EXAMMV2.network import *
 import math
 import numpy as np
 import random as rand
