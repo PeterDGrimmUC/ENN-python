@@ -839,7 +839,6 @@ class masterProcess:
         for _ in range(0,initPop):
             instances.append(self.newInitGenome())
         for currGeneration in range(0,maxGens):
-            p.restart()
             for ind,genin in enumerate(instances):
                 genin.epochMult = self.randomMutationSpecial(genin, mutationMult[ind])
             speciesList = self.speciate(instances, cutoff, c1,c2,c3, speciesStartList = speciesStartList)
@@ -858,13 +857,13 @@ class masterProcess:
                 self.interSpeciesSelectionFeedback(species, topNrat)
             (specFitnessArr,speciesList) = self.intraSpeciesSelectionFeedback(speciesList, topNSpecRat)
             #(instances,speciesStartList,mutationMult) = self.repopulateFeedback(speciesList,specFitnessArr,initPop)
-            (instances,speciesStartList,mutationMult) = self.repopulateParallel(speciesList,specFitnessArr,initPop,p)
+            (instances,speciesStartList,mutationMult) = self.repopulateFeedback(speciesList,specFitnessArr,initPop)
             #print(cutoff)
             #print(cutoff)
             print(specFitnessArr)
             #print(cutoff)
-            p.close()
-            p.join()
+        p.close()
+        p.join()
         self.bestGenome = max(instances + [n for sub in speciesList for n in sub],key= lambda x:x.fitness)
         #best.printTopology()
 
@@ -874,7 +873,7 @@ class masterProcess:
             self.fixGenome(gen)
             gen.transcodeNetwork()
             gen.train(self.trainingData, self.trainingLabels,math.floor(e0*gen.epochMult),lr)
-            gen.getFitness(self.trainingData,self.trainingLabels)
+            gen.getFitness(self.testData,self.testLabels)
             gen.fitness = gen.fitness/elemInSpecies
         epochMults = []
 
@@ -976,6 +975,9 @@ class masterProcess:
     def updateFeedBackParameters(self, feedBackDict, stats):
         pass
 
+    def evaluateTestData(self, genomeIn):
+        genomeIn.transcodeNetwork()
+        genomeIn.evaluate(self.testData, self.testLabels)
 def tic():
     #Homemade version of matlab tic and toc functions
     import time

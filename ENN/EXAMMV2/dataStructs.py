@@ -49,14 +49,6 @@ class node:
         elif connectionType == 'Output':
             self.outputConnections.append(connectionIn)
 
-    def copy(self, newNodeNum=None,newBias=None):
-        if newNodeNum is None:
-            newNodeNum = self.nodeNum
-        if newBias is None:
-            newBias = self.bias
-        newInps = []
-        newOutps = []
-        return node(newNodeNum, depth = self.depth, bias = newBias,nodeType=self.nodeType)
 
 class masterNode:
     def __init__(self,nodeNum, depth, nodeType):
@@ -100,17 +92,6 @@ class connection:
         self.connectionType = connectionType
         self.weight = weight
         self.enabled = True
-
-    def copy(self,newInnovNum=None,newWeight=None):
-        if newInnovNum is None:
-            innovNum = self.innovNum
-        else:
-            innovNum = self.innovNum
-        if newWeight is not None:
-            wt = newWeight
-        else:
-            wt = self.weight
-        return connection(innovNum, self.inputNode , self.outputNode, weight=wt)
 
     def __repr__(self):
         return "ID: %i, IO (%i,%i),en=%r" % (self.innovNum, self.inputNode.nodeNum,self.outputNode.nodeNum,self.enabled)
