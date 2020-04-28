@@ -9,6 +9,7 @@ import threading
 import multiprocessing
 import dill
 
+randVal = lambda : rand.uniform(-.5,.5)/10000
 # Enums
 class activationFuncs(Enum):
     SIGMOID=lambda x: 1/(1+math.exp(-x))
@@ -75,10 +76,10 @@ class masterNode:
         inpCopy = []
         outpCopy = []
         for inp in self.inputConnections:
-            inpCopy.append(connection(self.nodeNum,inp.createChildCopy(),weight=rand.uniform(-.5,.5)))
+            inpCopy.append(connection(self.nodeNum,inp.createChildCopy(),weight=randVal()))
         for outp in self.outputConnections:
-            outpCopy.append(connection(self.nodeNum,outp.createChildCopy(),weight=rand.uniform(-.5,.5)))
-        childNode =  node(self.nodeNum, depth = self.depth, bias=rand.uniform(-.5,.5),nodeType=self.nodeType)
+            outpCopy.append(connection(self.nodeNum,outp.createChildCopy(),weight=randVal()))
+        childNode =  node(self.nodeNum, depth = self.depth, bias=randVal(),nodeType=self.nodeType)
         childNode.inputConnections = inpCopy
         childNode.outputConnections = outpCopy
         return childNode
@@ -110,7 +111,7 @@ class masterConnection:
         self.connectionType = connectionType
 
     def createChildCopy(self):
-        return connection(self.innovNum, self.inputNode.createChildCopy(), self.outputNode.createChildCopy(),weight = rand.uniform(-.5,.5))
+        return connection(self.innovNum, self.inputNode.createChildCopy(), self.outputNode.createChildCopy(),weight = randVal())
     def __repr__(self):
         return "ID: %i, IO (%i,%i)" % (self.innovNum, self.inputNode.nodeNum,self.outputNode.nodeNum)
 
@@ -148,7 +149,7 @@ class masterGenome:
         newNodeNum = self.get_nodeNum()
         # create child copy to send back to requsting genome
         #pdb.set_trace()
-        newChildNode = node(newNodeNum,depth=depth,nodeType=nodeType,bias= rand.uniform(-.5,.5)) # TODO put this in a variable
+        newChildNode = node(newNodeNum,depth=depth,nodeType=nodeType,bias= randVal()) # TODO put this in a variable
         newMasterNode = masterNode(newNodeNum, depth=depth,nodeType=nodeTypes.HIDDEN)
         # create array of new connection innovations based on recieved GENOME nodes
         connectionInnovations = []
@@ -171,7 +172,7 @@ class masterGenome:
         inputMasterNode.addConnection(newMasterConnection,'Output')
         outputMasterNode.addConnection(newMasterConnection,'Input')
         # return child connection
-        newChildConnection = connection(newInnovNum, inputChildNode, outputChildNode, weight = rand.uniform(-.5,.5))
+        newChildConnection = connection(newInnovNum, inputChildNode, outputChildNode, weight = randVal())
         # add connection to child's input, output list
         inputChildNode.addConnection(newChildConnection, 'Output')
         outputChildNode.addConnection(newChildConnection, 'Input')
@@ -185,7 +186,7 @@ class masterGenome:
         masterInputNode = self.nodeGenes[inputNodeNum]
         masterOutputNode = self.nodeGenes[outputNodeNum]
         newMasterConnection = masterConnection(newInnovNum, masterInputNode,masterOutputNode)
-        newChildConnection = connection(newInnovNum, childInputNode,childOutputNode, weight = rand.uniform(-.5,.5))
+        newChildConnection = connection(newInnovNum, childInputNode,childOutputNode, weight = randVal())
         masterInputNode.addConnection(newMasterConnection,'Output')
         masterOutputNode.addConnection(newMasterConnection,'Input')
         self.connectionGenes.append(newMasterConnection)
@@ -206,19 +207,19 @@ class masterGenome:
         masterOutputNode = self.nodeGenes[childOutputNode.nodeNum]
         for conn in masterInputNode.outputConnections:
             if conn.outputNode.nodeNum == masterOutputNode.nodeNum:
-                return connection(conn.innovNum, childInputNode,childOutputNode,weight=rand.uniform(-.5,.5))
+                return connection(conn.innovNum, childInputNode,childOutputNode,weight=randVal())
         return None
 
     def copy(self, ID):
         nodeGenes = []
         connectionGenes = []
         for ng in self.nodeGenes:
-            nodeGenes.append(node(ng.nodeNum, ng.depth, bias=rand.uniform(-.5,.5),nodeType=ng.nodeType))
+            nodeGenes.append(node(ng.nodeNum, ng.depth, bias=randVal(),nodeType=ng.nodeType))
         nodeNums = [n.nodeNum for n in nodeGenes]
         for cg in self.connectionGenes:
             inputNode = nodeGenes[nodeNums.index(cg.inputNode.nodeNum)]
             outputNode = nodeGenes[nodeNums.index(cg.outputNode.nodeNum)]
-            newConn = connection(cg.innovNum,inputNode,outputNode, weight=rand.uniform(-.5,.5))
+            newConn = connection(cg.innovNum,inputNode,outputNode, weight=randVal())
             connectionGenes.append(newConn)
             inputNode.outputConnections.append(newConn)
             outputNode.inputConnections.append(newConn)

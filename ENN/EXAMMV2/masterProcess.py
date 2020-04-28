@@ -4,7 +4,7 @@ from multiprocessing import Process,Queue,cpu_count,Pipe
 from pathos.multiprocessing import ProcessingPool as Pool
 # This version trades computational complexity for space complexity, requires more space but less calculations
 # each genome node and connection contains all information needed to carry out mutations
-randomVal = lambda : rand.uniform(-.5,.5)
+randomVal = lambda : rand.uniform(-.05,.05)/10000
 class masterProcess:
     def __init__(self, inputs,outputs):
         # inputs and outputs

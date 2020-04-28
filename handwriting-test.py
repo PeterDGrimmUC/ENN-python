@@ -4,10 +4,10 @@ import numpy as np
 image_size = 28 # width and length
 no_of_different_labels = 10 #  i.e. 0, 1, 2, 3, ..., 9
 image_pixels = image_size * image_size
-data_path = "data/mnist/"
-train_data = np.loadtxt("mnist_train.csv",
+data_path = "./handwritingData"
+train_data = np.loadtxt(data_path + "mnist_train.csv",
                         delimiter=",")
-test_data = np.loadtxt("mnist_test.csv",
+test_data = np.loadtxt(data_path + "mnist_test.csv",
                        delimiter=",")
 
 def digToLabel(dig):
@@ -29,4 +29,4 @@ proc = masterProcess(model_inputs,model_outputs)
 (test_inputs,test_labels) = dataToNetForm(test_data)
 proc.set_testData(test_inputs,test_labels)
 proc.set_trainingData(training_inputs,training_labels)
-proc.evolveFeedbackParallel(20,.4,.4,.2,.8,30,3,.01,.3,.01,.3,.8)
+proc.evolveFeedbackParallel(20,.4,.4,.2,.8,30,2,.01,.3,.01,.3,.8)
