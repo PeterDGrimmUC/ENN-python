@@ -1,5 +1,7 @@
 from ENN.EXAMMV2 import *
 import numpy as np
+import sys
+sys.setrecursionlimit(10000)
 image_size = 28 # width and length
 no_of_different_labels = 10 #  i.e. 0, 1, 2, 3, ..., 9
 image_pixels = image_size * image_size
