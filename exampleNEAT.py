@@ -22,7 +22,7 @@ c2 = 1
 c3 = .4
 cutoff = 2
 maxGens = 200
-topNrat = .1
+topNrat = 1
 topNSpecRat = .9
 (maxO,meanO,g) = master.evolveNEAT(initpop,c1 ,c2,c3,cutoff,maxGens,topNrat,topNSpecRat)
 

@@ -983,7 +983,7 @@ class masterProcess:
             instances.append(self.newInitGenome())
         for currGeneration in range(0,maxGens):
             for ind,genin in enumerate(instances):
-                self.randomMutationSpecial(genin,mutationMult[ind])
+                self.randomMutationNEAT(genin,mutationMult[ind])
             speciesList = self.speciate(instances, cutoff, c1,c2,c3, speciesStartList = speciesStartList)
             for ind,species in enumerate(speciesList):
                 print("evaluating species %i"%(ind))
