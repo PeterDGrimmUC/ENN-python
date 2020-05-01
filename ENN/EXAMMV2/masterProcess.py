@@ -979,6 +979,8 @@ class masterProcess:
         mutationMult = np.ones(initPop)
         solFound = False
         solGen = -1
+        numNodes = -1
+        numConns = -1
         for _ in range(0,initPop):
             instances.append(self.newInitGenome())
         for currGeneration in range(0,maxGens):
@@ -991,6 +993,8 @@ class masterProcess:
                 if solOut and not solFound:
                     solGen = currGeneration
                     solFound = True
+                    numNodes = len([n for n in gen.nodeGenes if n.enabled == True])
+                    numConns = len([n for n in gen.connectionGenes if n.enabled == True])
                 self.interSpeciesSelectionFeedback(species, topNrat)
             (specFitnessArr,speciesList) = self.intraSpeciesSelectionFeedback(speciesList, topNSpecRat)
             #(instances,speciesStartList,mutationMult) = self.repopulateFeedback(speciesList,specFitnessArr,initPop)
@@ -1002,7 +1006,7 @@ class masterProcess:
             meanFitnessArr.append(np.mean(specFitnessArr))
             #print(cutoff)
         self.bestGenome = max(instances + [n for sub in speciesList for n in sub],key= lambda x:x.fitness)
-        return (maxFitnessArr, meanFitnessArr,solGen)
+        return (maxFitnessArr, meanFitnessArr,solGen,numNodes,numConns)
     def evolveFeedbackParallel(self, initPop, c1,c2,c3,c0, maxGens, e0, l0,speciationTarget,dSpec,topNrat,topNSpecRat):
         # experimental idea
         # create instances and mutate
