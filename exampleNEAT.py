@@ -2,8 +2,8 @@ from ENN.EXAMMV2 import *
 import matplotlib.pyplot as plt
 import numpy as np
 # Set parameters
-inputs = 4
-outputs = 3
+inputs = 2
+outputs = 1
 master = masterProcess(inputs,outputs)
 # set data
 trainingData = [[0,0],[0,1],[1,0],[1,1]]
