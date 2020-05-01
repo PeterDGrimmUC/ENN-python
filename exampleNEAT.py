@@ -24,8 +24,13 @@ cutoff = 2
 maxGens = 200
 topNrat = .2
 topNSpecRat = .9
-(maxO,meanO,g) = master.evolveNEAT(initpop,c1 ,c2,c3,cutoff,maxGens,topNrat,topNSpecRat)
-print(g)
+#feedBackGenToFinish = []
+#feedBackGenToFinish = []
+#feedBackNode = []
+#feedBackConn = []
+#for _ in range(0,20):
+#(maxO,meanO,g) = master.evolveNEAT(initpop,c1 ,c2,c3,cutoff,maxGens,topNrat,topNSpecRat)
+#print(g)
 #initpop = 20
 #c1 = 1
 #c2 = 1
@@ -36,28 +41,28 @@ print(g)
 #topNrat = .3
 #topNSpecRat = .6
 #l0 = .3
-#feedBackGenToFinish = []
-#feedBackGenToFinish = []
-#feedBackNode = []
-#feedBackConn = []
-#max0Tot = np.zeros(maxGens)
-#mean0Tot = np.zeros(maxGens)
-#for _ in range(0,10):
-#    master = masterProcess(inputs,outputs)
-#    # set data
-#    #trainingData = [[0,0],[0,1],[1,0],[1,1]]
-#    #trainingLabels = [[0],[1],[1],[0]]
-#    master.set_trainingData(trainingData,trainingLabels)
-#    master.set_testData(trainingData,trainingLabels)
-#    (maxO,meanO,g,n,c) = master.evolveFeedbackParallel(initpop,c1 ,c2,c3,cutoff,maxGens,e0,l0,.3,.01,topNrat,topNSpecRat)
-#    feedBackGenToFinish.append(g)
-#    max0Tot += maxO
-#    mean0Tot += meanO
-#    feedBackNode.append(n)
-#    feedBackConn.append(c)
-#max0Tot = max0Tot/10
-#mean0Tot = mean0Tot/10
-#print(g)
+feedBackGenToFinish = []
+feedBackGenToFinish = []
+feedBackNode = []
+feedBackConn = []
+max0Tot = np.zeros(maxGens)
+mean0Tot = np.zeros(maxGens)
+for _ in range(0,10):
+    master = masterProcess(inputs,outputs)
+    # set data
+    #trainingData = [[0,0],[0,1],[1,0],[1,1]]
+    #trainingLabels = [[0],[1],[1],[0]]
+    master.set_trainingData(trainingData,trainingLabels)
+    master.set_testData(trainingData,trainingLabels)
+    (maxO,meanO,g,n,c) = master.evolveNEAT(initpop,c1 ,c2,c3,cutoff,maxGens,topNrat,topNSpecRat)
+    feedBackGenToFinish.append(g)
+    max0Tot += maxO
+    mean0Tot += meanO
+    feedBackNode.append(n)
+    feedBackConn.append(c)
+max0Tot = max0Tot/10
+mean0Tot = mean0Tot/10
+print(g)
 #
 #feedBackNodeN = []
 #feedBackConnN = []
