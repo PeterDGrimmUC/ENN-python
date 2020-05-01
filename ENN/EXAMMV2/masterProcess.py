@@ -1243,15 +1243,19 @@ class masterProcess:
         outputInstances = []
         while len(outputInstances) < targetPop-len(speciesLeaders):
             speciesChoice = rand.choice(speciesList)
-            if len(speciesChoice) == 1:
+            if rand.random() > .75:
+                if len(speciesChoice) == 1:
+                    newGenome = self.mergeMethod2(speciesChoice[0],speciesChoice[0],.5)
+                    outputInstances.append(newGenome)
+                    mutationMult.append(0)
+                elif len(speciesChoice) > 1:
+                    newGenomes = rand.sample(speciesChoice,2)
+                    newGenome = self.mergeNEAT((newGenomes[0]),(newGenomes[1]),1)
+            else:
                 newGenome = self.mergeMethod2(speciesChoice[0],speciesChoice[0],.5)
-                outputInstances.append(newGenome)
-                mutationMult.append(0)
-            elif len(speciesChoice) > 1:
-                newGenomes = rand.sample(speciesChoice,2)
-                newGenome = self.mergeNEAT((newGenomes[0]),(newGenomes[1]),1)
-                outputInstances.append(newGenome)
-                mutationMult.append(0)
+            outputInstances.append(newGenome)
+            mutationMult.append(0)
+
         return (outputInstances, speciesLeaders,mutationMult)
 
     def repopulateParallel(self, speciesList, specFitnessArr, targetPop,threadPool):
