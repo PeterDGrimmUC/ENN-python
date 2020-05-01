@@ -993,8 +993,8 @@ class masterProcess:
                 if solOut and not solFound:
                     solGen = currGeneration
                     solFound = True
-                    numNodes = len([n for n in gen.nodeGenes if n.enabled == True])
-                    numConns = len([n for n in gen.connectionGenes if n.enabled == True])
+                    numNodes = len([n for n in genin.nodeGenes if n.enabled == True])
+                    numConns = len([n for n in genin.connectionGenes if n.enabled == True])
                 self.interSpeciesSelectionFeedback(species, topNrat)
             (specFitnessArr,speciesList) = self.intraSpeciesSelectionFeedback(speciesList, topNSpecRat)
             #(instances,speciesStartList,mutationMult) = self.repopulateFeedback(speciesList,specFitnessArr,initPop)
