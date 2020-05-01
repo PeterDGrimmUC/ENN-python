@@ -1230,7 +1230,7 @@ class masterProcess:
                 mutationMult.append(refDict[speciesChoice[0][0].ID])
             elif len(speciesChoice[0]) > 1:
                 newGenomes = rand.sample(speciesChoice[0],2)
-                newGenome = self.mergeNEAT((newGenomes[0]),(newGenomes[1]),.25)
+                newGenome = self.mergeNEAT((newGenomes[0]),(newGenomes[1]),0)
                 outputInstances.append(newGenome)
                 mutationMult.append(refDict[speciesChoice[0][0].ID])
         return (outputInstances, speciesLeaders,mutationMult)
