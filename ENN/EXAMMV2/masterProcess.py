@@ -344,7 +344,7 @@ class masterProcess:
 
     def randomMutationNEAT(self,genomeIn,mutationMuliplier):
         if rand.random() < .8:# * mutationMuliplier :
-            self.pertrubNetwork(genomeIn, .9, .5)
+            self.pertrubNetwork(genomeIn, .9, .1)
         if rand.random() < .05:# * mutationMuliplier:
             self.addRandomConnection(genomeIn)
         if rand.random() < .03:# * mutationMuliplier:
