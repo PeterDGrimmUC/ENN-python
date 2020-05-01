@@ -1224,7 +1224,7 @@ class masterProcess:
         while len(outputInstances) < targetPop-len(speciesLeaders):
             speciesChoice = rand.choice(speciesList)
             if len(speciesChoice) == 1:
-                newGenome = self.mergeNEAT(speciesChoice[0],speciesChoice[0],.25)
+                newGenome = self.mergeMethod2(speciesChoice[0],speciesChoice[0],.5)
                 outputInstances.append(newGenome)
                 mutationMult.append(0)
             elif len(speciesChoice) > 1:
