@@ -974,7 +974,7 @@ class masterProcess:
                 self.interSpeciesSelectionFeedback(species, topNrat)
             (specFitnessArr,speciesList) = self.intraSpeciesSelectionFeedback(speciesList, topNSpecRat)
             #(instances,speciesStartList,mutationMult) = self.repopulateFeedback(speciesList,specFitnessArr,initPop)
-            (instances,speciesStartList,mutationMult) = self.repopulateNEAT(speciesList,specFitnessArr,initPop)
+            (instances,speciesStartList,mutationMult) = self.repopulateFeedback(speciesList,specFitnessArr,initPop)
             #print(cutoff)
             #print(cutoff)
             print(specFitnessArr)
