@@ -343,8 +343,8 @@ class masterProcess:
         return trainingMultiplier
 
     def randomMutationNEAT(self,genomeIn,mutationMuliplier):
-        if rand.random() < .8:# * mutationMuliplier :
-            self.pertrubNetwork(genomeIn, .6, 2)
+        if rand.random() < .9:# * mutationMuliplier :
+            self.pertrubNetwork(genomeIn, .5, .5)
         if rand.random() < .05:# * mutationMuliplier:
             self.addRandomConnection(genomeIn)
         if rand.random() < .03:# * mutationMuliplier:
@@ -1230,7 +1230,7 @@ class masterProcess:
                 mutationMult.append(refDict[speciesChoice[0][0].ID])
             elif len(speciesChoice[0]) > 1:
                 newGenomes = rand.sample(speciesChoice[0],2)
-                newGenome = self.mergeNEAT((newGenomes[0]),(newGenomes[1]),0)
+                newGenome = self.mergeNEAT((newGenomes[0]),(newGenomes[1]),0  )
                 outputInstances.append(newGenome)
                 mutationMult.append(refDict[speciesChoice[0][0].ID])
         return (outputInstances, speciesLeaders,mutationMult)
