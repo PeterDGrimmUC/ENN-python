@@ -19,11 +19,11 @@ master.set_testData(trainingData,trainingLabels)
 initpop = 500
 c1 = 1
 c2 = 1
-c3 = .3
-cutoff = 1.8
+c3 = .4
+cutoff = 3
 maxGens = 200
-topNrat = .8
-topNSpecRat = .6
+topNrat = .1
+topNSpecRat = .9
 (maxO,meanO,g) = master.evolveNEAT(initpop,c1 ,c2,c3,cutoff,maxGens,topNrat,topNSpecRat)
 
 #initpop = 20
