@@ -2,14 +2,17 @@ from ENN.EXAMMV2 import *
 import matplotlib.pyplot as plt
 import numpy as np
 # Set parameters
-inputs = 3
-outputs = 2
+inputs = 4
+outputs = 3
 master = masterProcess(inputs,outputs)
 # set data
 #trainingData = [[0,0],[0,1],[1,0],[1,1]]
-trainingData = [[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]]
+#trainingData = [[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]]
 #trainingLabels = [[0],[1],[1],[0]]
-trainingLabels = [[0,0],[0,1],[0,1],[1,0],[0,1],[1,0],[1,0],[1,1]]
+#trainingLabels = [[0,0],[0,1],[0,1],[1,0],[0,1],[1,0],[1,0],[1,1]]
+trainingData = [[0,0,0,0],[0,0,0,1],[0,0,1,0],[0,0,1,1],[0,1,0,0],[0,1,0,1],[0,1,1,0],[0,1,1,1],[1,0,0,0],[1,0,0,1],[1,0,1,0],[1,0,1,1],[1,1,0,0],[1,1,0,1],[1,1,1,0],[1,1,1,1]]
+trainingLabels = [[0,0,0],[0,0,1],[0,1,0],[0,1,1],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[0,1,0],[0,1,1],[0,1,0],[1,0,1],[0,1,1],[1,0,0],[1,0,1],[1,1,0]]
+
 master.set_trainingData(trainingData,trainingLabels)
 master.set_testData(trainingData,trainingLabels)
 # set model parameters
@@ -23,12 +26,12 @@ topNrat = .3
 topNSpecRat = .6
 #(maxO,meanO,g) = master.evolveNEAT(initpop,c1 ,c2,c3,cutoff,maxGens,topNrat,topNSpecRat)
 
-initpop = 30
+initpop = 20
 c1 = 1
 c2 = 1
 c3 = .3
 cutoff = 2
-maxGens = 40
+maxGens = 30
 e0 = 150
 topNrat = .3
 topNSpecRat = .6
@@ -39,7 +42,7 @@ feedBackNode = []
 feedBackConn = []
 max0Tot = np.zeros(maxGens)
 mean0Tot = np.zeros(maxGens)
-for _ in range(0,20):
+for _ in range(0,10):
     master = masterProcess(inputs,outputs)
     # set data
     #trainingData = [[0,0],[0,1],[1,0],[1,1]]
@@ -52,8 +55,8 @@ for _ in range(0,20):
     mean0Tot += meanO
     feedBackNode.append(n)
     feedBackConn.append(c)
-max0Tot = max0Tot/20
-mean0Tot = mean0Tot/20
+max0Tot = max0Tot/10
+mean0Tot = mean0Tot/10
 print(g)
 
 feedBackNodeN = []
@@ -61,7 +64,7 @@ feedBackConnN = []
 max0TotN = np.zeros(maxGens)
 mean0TotN = np.zeros(maxGens)
 feedBackGenToFinishN = []
-for _ in range(0,20):
+for _ in range(0,10):
     master = masterProcess(inputs,outputs)
     # set data
     master.set_trainingData(trainingData,trainingLabels)
@@ -72,5 +75,5 @@ for _ in range(0,20):
     mean0TotN += meanO
     feedBackNodeN.append(n)
     feedBackConnN.append(c)
-max0TotN = max0TotN/20
-mean0TotN = mean0TotN/20
+max0TotN = max0TotN/10
+mean0TotN = mean0TotN/10
