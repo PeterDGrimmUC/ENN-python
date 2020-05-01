@@ -1217,20 +1217,20 @@ class masterProcess:
         return (outputInstances, speciesLeaders,mutationMult)
     def repopulateNEAT(self, speciesList,specFitnessArr,targetPop):
         #normalize relative fitness to 1 and use as a probability distribution for repopulation
-        probDist = specFitnessArr/np.linalg.norm(specFitnessArr)
+        #probDist = specFitnessArr/np.linalg.norm(specFitnessArr)
         mutationMult = []
         refDict = dict(zip([n[0].ID for n in speciesList],probDist))
         speciesLeaders = [[max(n,key=lambda x:x.fitness)] for n in speciesList]
         outputInstances = []
         while len(outputInstances) < targetPop-len(speciesLeaders):
-            speciesChoice = rand.choices(speciesList, weights=probDist.tolist())
+            speciesChoice = rand.choice(speciesList)
             if len(speciesChoice[0]) == 1:
                 newGenome = self.mergeNEAT(speciesChoice[0][0],speciesChoice[0][0],.25)
                 outputInstances.append(newGenome)
                 mutationMult.append(refDict[speciesChoice[0][0].ID])
             elif len(speciesChoice[0]) > 1:
                 newGenomes = rand.sample(speciesChoice[0],2)
-                newGenome = self.mergeNEAT((newGenomes[0]),(newGenomes[1]),0  )
+                newGenome = self.mergeNEAT((newGenomes[0]),(newGenomes[1]),0)
                 outputInstances.append(newGenome)
                 mutationMult.append(refDict[speciesChoice[0][0].ID])
         return (outputInstances, speciesLeaders,mutationMult)
