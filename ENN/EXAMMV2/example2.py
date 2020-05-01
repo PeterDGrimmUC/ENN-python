@@ -12,8 +12,10 @@ import cProfile
 #importlib.reload(masterProcess)
 #importlib.reload(network)
 master = masterProcess.masterProcess(3,2)
-inputData = [[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]]
-labelData = [[0,0],[0,1],[0,1],[1,0],[0,1],[1,0],[1,0],[1,1]]
+#inputData = [[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]]
+inputData = [[0,0],[0,1],[1,0],[1,1]]
+#labelData = [[0,0],[0,1],[0,1],[1,0],[0,1],[1,0],[1,0],[1,1]]
+labelData = [0,1,1,0]
 initPopulation = 500
 cutoff = .9
 c1 = .6
@@ -23,11 +25,8 @@ epochs = 200
 learningRate = .2
 maxGens = 10
 master.set_trainingData(inputData, labelData)
-master.spawnProcessess()
-#master.mutationStressTest(initPopulation,maxGens,  epochs, learningRate, .5)
-masterProcess.tic()
-master.evolveFeedbackParallel(initPopulation,c1,c2,c3,cutoff,maxGens,epochs,learningRate,.2,.005,.4,.6)
-cProfile,run('master.evolveFeedbackParallel(initPopulation,c1,c2,c3,cutoff,maxGens,epochs,learningRate,.2,.005,.4,.6)')
+master.evolveNEAT(initPopulation,c1,c2,c3,cutoff,maxGens,epochs,learningRate,.2,.005,.4,.6)
+#cProfile,run('master.evolveFeedbackParallel(initPopulation,c1,c2,c3,cutoff,maxGens,epochs,learningRate,.2,.005,.4,.6)')
 masterProcess.toc()
 #masterProcess.tic()
 #master.evolveFeedback(initPopulation,c1,c2,c3,cutoff,maxGens,epochs,learningRate,.2,.005,.4,.6)

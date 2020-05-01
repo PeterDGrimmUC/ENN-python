@@ -1,10 +1,11 @@
 from ENN.EXAMMV2.dataStructs import *
+from ENN.EXAMMV2.networkParallel import *
 from ENN.EXAMMV2.network import *
 from multiprocessing import Process,Queue,cpu_count,Pipe
 from pathos.multiprocessing import ProcessingPool as Pool
 # This version trades computational complexity for space complexity, requires more space but less calculations
 # each genome node and connection contains all information needed to carry out mutations
-randomVal = lambda : rand.uniform(-.05,.05)/10000
+randomVal = lambda : rand.uniform(-.05,.05)/1000000
 class masterProcess:
     def __init__(self, inputs,outputs):
         # inputs and outputs
@@ -332,6 +333,27 @@ class masterProcess:
             trainingMultiplier += .2
         return trainingMultiplier
 
+    def randomMutationNEAT(self,genomeIn,mutationMuliplier):
+        if rand.random() < .4 * mutationMuliplier :
+            self.pertrubNetwork(genomeIn, .2, .3)
+        if rand.random() < .3 * mutationMuliplier:
+            self.addRandomConnection(genomeIn)
+        if rand.random() < .1 * mutationMuliplier:
+            self.addRandomNode(genomeIn)
+        if rand.random() < .05 * mutationMuliplier:
+            self.splitRandomConnection(genomeIn)
+            self.findDisconnectedGenome(genomeIn)
+        if rand.random() <.1 * mutationMuliplier:
+            self.mergeNode(genomeIn)
+        if rand.random() < .2 * mutationMuliplier:
+            self.disableRandomNode(genomeIn)
+        if rand.random() < .3 * mutationMuliplier:
+            self.disableRandomConnection(genomeIn)
+        if rand.random() <.001 * mutationMuliplier:
+            self.enableRandomNode(genomeIn)
+        if rand.random() <.001 * mutationMuliplier:
+            self.enableRandomConnection(genomeIn)
+
     def randomMutationVerify(self,genomeIn,mutationMuliplier):
         trainingMultiplier = .1
         print("Mutating genome %i"%(genomeIn.ID))
@@ -379,7 +401,6 @@ class masterProcess:
             print("\tenabled connection ")
         print("\n")
         return trainingMultiplier
-
 
     ## Genome Operations
 
@@ -767,7 +788,6 @@ class masterProcess:
             gen.train(inputData,outputData,epochs,learningRate)
             gen.getFitness(inputData,outputData)
         fitnessArr = np.array([n.fitness for n in speciesGenomes])/numGenomes
-        #print(fitnessArr)
         numToRemove = math.floor(proportionToElim * numGenomes)
         genToRemove = fitnessArr.argsort()[:numToRemove][::-1]
         successfulGenomes = [i for j, i in enumerate(speciesGenomes) if j not in genToRemove]
@@ -825,7 +845,31 @@ class masterProcess:
             #print(cutoff)
         self.bestGenome = max(instances + [n for sub in speciesList for n in sub],key= lambda x:x.fitness)
         #best.printTopology()
-
+    def evolveNEAT(self, initPop, c1,c2,c3,c0,maxGens,e0,topNrat, topNSpecRat):
+        instances = []
+        epochMults = []
+        speciesStartList = []
+        cutoff = c0
+        for _ in range(0,initPop):
+            instances.append(self.newInitGenome())
+        for currGeneration in range(0,maxGens):
+            for ind,genin in enumerate(instances):
+                self.randomMutationNEAT(genin)
+            speciesList = self.speciate(instances, cutoff, c1,c2,c3, speciesStartList = speciesStartList)
+            for ind,species in enumerate(speciesList):
+                print("evaluating species %i"%(ind))
+                self.evaluateSpeciesNEAT(species, )
+                self.interSpeciesSelectionFeedback(species, topNrat)
+            (specFitnessArr,speciesList) = self.intraSpeciesSelectionFeedback(speciesList, topNSpecRat)
+            #(instances,speciesStartList,mutationMult) = self.repopulateFeedback(speciesList,specFitnessArr,initPop)
+            (instances,speciesStartList,mutationMult) = self.repopulateFeedback(speciesList,specFitnessArr,initPop)
+            #print(cutoff)
+            #print(cutoff)
+            print(specFitnessArr)
+            #print(cutoff)
+        p.close()
+        p.join()
+        self.bestGenome = max(instances + [n for sub in speciesList for n in sub],key= lambda x:x.fitness)
     def evolveFeedbackParallel(self, initPop, c1,c2,c3,c0, maxGens, e0, l0,speciationTarget,dSpec,topNrat,topNSpecRat):
         # experimental idea
         # create instances and mutate
@@ -867,8 +911,37 @@ class masterProcess:
         self.bestGenome = max(instances + [n for sub in speciesList for n in sub],key= lambda x:x.fitness)
         #best.printTopology()
 
+    def evolveFeedbackParallel2(self, initPop, c1,c2,c3,c0, maxGens, e0, l0,speciationTarget,dSpec,topNrat,topNSpecRat):
+        # experimental idea
+        # create instances and mutate
+        instances = []
+        epochMults = []
+        speciesStartList = []
+        cutoff = c0
+        mutationMult = np.ones(initPop)
+        specTarget = math.floor((initPop) * speciationTarget)
+        for _ in range(0,initPop):
+            instances.append(self.newInitGenome())
+        for currGeneration in range(0,maxGens):
+            for ind,genin in enumerate(instances):
+                genin.epochMult = self.randomMutationSpecial(genin, mutationMult[ind])
+            speciesList = self.speciate(instances, cutoff, c1,c2,c3, speciesStartList = speciesStartList)
+            cutoff -= (dSpec*(len(speciesList) - specTarget))
+            print(cutoff)
+            print("current generation : %i, Number of instances : %i, number of species: %i "%(currGeneration, len(instances),len(speciesList)))
+            for ind,species in enumerate(speciesList):
+                print("evaluating species %i"%(ind))
+                self.evaluateSpeciesFeedbackParallel(species, e0, l0)
+                self.interSpeciesSelectionFeedback(species, topNrat)
+            (specFitnessArr,speciesList) = self.intraSpeciesSelectionFeedback(speciesList, topNSpecRat)
+            (instances,speciesStartList,mutationMult) = self.repopulateFeedback(speciesList,specFitnessArr,initPop)
+            print(specFitnessArr)
+        self.bestGenome = max(instances + [n for sub in speciesList for n in sub],key= lambda x:x.fitness)
+        #best.printTopology()
+
     def evaluateSpeciesFeedback(self,species, e0, lr):
         elemInSpecies = len(species)
+        netArr = []
         for ind,gen in enumerate(species):
             self.fixGenome(gen)
             gen.transcodeNetwork()
@@ -876,6 +949,35 @@ class masterProcess:
             gen.getFitness(self.testData,self.testLabels)
             gen.fitness = gen.fitness/elemInSpecies
         epochMults = []
+    def evaluateSpeciesNEAT(self,species):
+        elemInSpecies = len(species)
+        netArr = []
+        for ind,gen in enumerate(species):
+            self.fixGenome(gen)
+            gen.transcodeNetwork()
+            gen.getFitness(self.testData,self.testLabels)
+            gen.fitness = gen.fitness/elemInSpecies
+            gen.evalCorrect(self.testData,self.testLabels)
+    def evaluateSpeciesFeedbackParallel(self, species, e0, lr):
+        elemInSpecies = len(species)
+        netArr = []
+        p = Pool()
+        for ind, gen in enumerate(species):
+            self.fixGenome(gen)
+            netArr.append((gen.transcodeNetworkParallel(), e0, gen.epochMult, lr))
+        netArr = p.map(self.trainNet, netArr)
+        p.close()
+        p.join()
+        for ind, gen in enumerate(species):
+            netArr[ind].updateGenome(gen)
+
+    def trainNet(self, tupleIn):
+        netIn = tupleIn[0]
+        e0 = tupleIn[1]
+        epochMult = tupleIn[2]
+        lr = tupleIn[3]
+        netIn.train(self.trainingData, self.trainingLabels, math.floor(e0 * epochMult),lr)
+        return netIn
 
     def evaluateSpeciesParallel(self,tupleIn):
         species = tupleIn[0]

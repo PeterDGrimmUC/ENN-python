@@ -86,3 +86,20 @@ class network:
     def getComplexity(self):
         c =  len(self.connections)/(self.inputs * self.outputs)
         return c
+    def evalCorrect(self, inputVec,outputVec):
+        MSE = np.zeros(len(inputVec))
+        corr = 0
+        dPt = 0
+        for ind,data in enumerate(inputVec):
+            output = self.feedForward(data)
+            corr = 0
+            for ind2,bit in enumerate(output):
+                if bit > .5 and outputVec[ind2] > .5 or bit < .5 and outputVec[ind2] < .5:
+                    corr += 1
+            if corr == len(outputVec[ind]):
+                dPt += 1
+        pdb.set_trace()
+        if dPt == len(outputVec):
+            return True
+        else:
+            return False

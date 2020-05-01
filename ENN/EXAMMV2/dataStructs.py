@@ -1,4 +1,5 @@
 from ENN.EXAMMV2.network import *
+from ENN.EXAMMV2.networkParallel import * 
 import math
 import numpy as np
 import random as rand
@@ -256,6 +257,11 @@ class genome:
     def transcodeNetwork(self):
         self.net = network(self,self.inputs,self.outputs)
         self.net.parseGenome()
+
+    def transcodeNetworkParallel(self):
+        net = networkParallel(self.inputs,self.outputs)
+        net.parseGenome(self)
+        return net
 
     def train(self,inputData,outputData,epochs,learningRate):
         self.net.train(inputData,outputData,epochs,learningRate)
