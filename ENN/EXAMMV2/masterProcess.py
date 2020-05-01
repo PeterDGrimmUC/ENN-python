@@ -852,7 +852,7 @@ class masterProcess:
                 for gen in species:
                     compat = self.geneCompatMethod2(currGenome,gen,c1,c2,c3)
                     #print(compat)
-                    if compat < cutoff:
+                    if compat > cutoff:
                         suitableSpeciesFound = True
                         species.append(currGenome)
                         break
