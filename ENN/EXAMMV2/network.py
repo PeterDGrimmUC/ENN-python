@@ -8,7 +8,7 @@ class network:
         self.genomeIn = genomeIn
         self.inputs = inputs
         self.outputs = outputs
-        self.activationFunction = lambda x: 1/(1+math.exp(-x)) # logistic
+        self.activationFunction = lambda x: 1/(1+math.exp(-4.9*x)) # logistic
         self.dL_Do = lambda o,t: o-t # MSE derivative
         #self.dPhi_dnet = lambda o: 1-np.square(o) #htan deriv
         self.dPhi_dnet = lambda o: np.multiply(o,(1-o)) # logistic deriv
