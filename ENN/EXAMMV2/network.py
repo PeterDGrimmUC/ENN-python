@@ -12,7 +12,7 @@ class network:
         self.dL_Do = lambda o,t: o-t # MSE derivative
         #self.dPhi_dnet = lambda o: 1-np.square(o) #htan deriv
         self.dPhi_dnet = lambda o: np.multiply(o,(1-o)) # logistic deriv
-        self.complexityDependence = .05
+        self.complexityDependence = 0
 
     def parseGenome(self):
         # get enabled nodes and connections
@@ -82,7 +82,7 @@ class network:
         return self.MSE
 
     def evalutateFitness(self):
-        return 1/(self.MSE)- self.complexityDependence*(1/self.MSE * self.getComplexity())
+        return 1/(self.MSE)#- self.complexityDependence*(1/self.MSE * self.getComplexity())
     def getComplexity(self):
         c =  len(self.connections)/(self.inputs * self.outputs)
         return c
