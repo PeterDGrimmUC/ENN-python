@@ -1219,7 +1219,6 @@ class masterProcess:
         #normalize relative fitness to 1 and use as a probability distribution for repopulation
         #probDist = specFitnessArr/np.linalg.norm(specFitnessArr)
         mutationMult = []
-        refDict = dict(zip([n[0].ID for n in speciesList],probDist))
         speciesLeaders = [[max(n,key=lambda x:x.fitness)] for n in speciesList]
         outputInstances = []
         while len(outputInstances) < targetPop-len(speciesLeaders):
