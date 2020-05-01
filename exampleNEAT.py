@@ -16,7 +16,7 @@ trainingLabels = [[0],[1],[1],[0]]
 master.set_trainingData(trainingData,trainingLabels)
 master.set_testData(trainingData,trainingLabels)
 # set model parameters
-initpop = 100
+initpop = 500
 c1 = 1
 c2 = 1
 c3 = .3
