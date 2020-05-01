@@ -459,7 +459,7 @@ class masterProcess:
         connCoeff = (c2 * (numSameConns)/(numSameConns+numDiffConns))
         if (maxWDiff - minWDiff) != 0 and numWts != 0:
             #wtCoeff = (c3 * (1/(maxWDiff - minWDiff)*((wtDiff/numWts) - minWDiff)))
-            wtCoeff = abs(c3 * wtDiff/numWts)
+            wtCoeff = (c3 * wtDiff/numWts)
         else:
             wtCoeff = 1
         return nodeCoeff + connCoeff + wtCoeff
@@ -860,7 +860,7 @@ class masterProcess:
                 speciesList.append([])
                 speciesList[-1].append(currGenome)
         return speciesList
-    def speciateNEAT(self, genomeList,cutoff,c1,c2,c3, speciesStartList = []):
+def speciateNEAT(self, genomeList,cutoff,c1,c2,c3, speciesStartList = []):
         if speciesStartList is []:
             speciesList = [[genomeList[0]]]
             del genomeList[0]
@@ -983,7 +983,7 @@ class masterProcess:
             instances.append(self.newInitGenome())
         for currGeneration in range(0,maxGens):
             for ind,genin in enumerate(instances):
-                self.randomMutationNEAT(genin,mutationMult[ind])
+                self.randomMutationSpecial(genin,mutationMult[ind])
             speciesList = self.speciate(instances, cutoff, c1,c2,c3, speciesStartList = speciesStartList)
             for ind,species in enumerate(speciesList):
                 print("evaluating species %i"%(ind))
