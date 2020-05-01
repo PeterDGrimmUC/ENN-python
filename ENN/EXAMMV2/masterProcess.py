@@ -459,7 +459,7 @@ class masterProcess:
         connCoeff = (c2 * (numSameConns)/(numSameConns+numDiffConns))
         if (maxWDiff - minWDiff) != 0 and numWts != 0:
             #wtCoeff = (c3 * (1/(maxWDiff - minWDiff)*((wtDiff/numWts) - minWDiff)))
-            wtCoeff = (c3 * wtDiff/numWts)
+            wtCoeff = abs(c3 * wtDiff/numWts)
         else:
             wtCoeff = 1
         return nodeCoeff + connCoeff + wtCoeff
@@ -860,6 +860,26 @@ class masterProcess:
                 speciesList.append([])
                 speciesList[-1].append(currGenome)
         return speciesList
+def speciateNEAT(self, genomeList,cutoff,c1,c2,c3, speciesStartList = []):
+        if speciesStartList is []:
+            speciesList = [[genomeList[0]]]
+            del genomeList[0]
+        else:
+            speciesList = speciesStartList
+        for currGenome in genomeList:
+            suitableSpeciesFound = False
+            for ind,species in enumerate(speciesList):
+                for gen in species:
+                    compat = self.geneCompatMethod2(currGenome,gen,c1,c2,c3)
+                    #print(compat)
+                    if compat > cutoff:
+                        suitableSpeciesFound = True
+                        species.append(currGenome)
+                        break
+            if not suitableSpeciesFound:
+                speciesList.append([])
+                speciesList[-1].append(currGenome)
+        return speciesList
 
     def evolveSpeciated(self,pop,c1,c2,c3,cutoff,inputData,outputData,maxGenerations,epochs,learningRate):
         instances = []
@@ -870,7 +890,7 @@ class masterProcess:
         for gen in range(0,maxGenerations):
             print("There are %i total genomes"%(len(instances)))
             for inst in instances:
-                self.randomMutation(inst)
+                self.randomM(inst)
             speciesList = self.speciate(instances, cutoff,c1,c2,c3, speciesStartList = speciesStartList)
             speciesStartList = []
             print("there are %i total species"%(len(speciesList)))
