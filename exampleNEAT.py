@@ -19,8 +19,8 @@ master.set_testData(trainingData,trainingLabels)
 initpop = 500
 c1 = 1
 c2 = 1
-c3 = 1
-cutoff = 2
+c3 = .3
+cutoff = 1.5
 maxGens = 100
 topNrat = .3
 topNSpecRat = .8

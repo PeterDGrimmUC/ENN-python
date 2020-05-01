@@ -343,8 +343,8 @@ class masterProcess:
         return trainingMultiplier
 
     def randomMutationNEAT(self,genomeIn,mutationMuliplier):
-        if rand.random() < 1:# * mutationMuliplier :
-            self.pertrubNetwork(genomeIn, .1, 2)
+        if rand.random() < .8:# * mutationMuliplier :
+            self.pertrubNetwork(genomeIn, .6, 2)
         if rand.random() < .05:# * mutationMuliplier:
             self.addRandomConnection(genomeIn)
         if rand.random() < .03:# * mutationMuliplier:
@@ -1280,6 +1280,7 @@ class masterProcess:
     def evaluateTestData(self, genomeIn):
         genomeIn.transcodeNetwork()
         genomeIn.evaluate(self.testData, self.testLabels)
+
 def tic():
     #Homemade version of matlab tic and toc functions
     import time
