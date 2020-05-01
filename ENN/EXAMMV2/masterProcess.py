@@ -1154,7 +1154,7 @@ class masterProcess:
         for ind,gen in enumerate(species):
             self.fixGenome(gen)
             gen.transcodeNetwork()
-            gen.train(self.trainingData, self.trainingLabels,100,.2)
+            gen.train(self.trainingData, self.trainingLabels,10,.2)
             gen.getFitness(self.testData,self.testLabels)
             gen.fitness = gen.fitness/elemInSpecies
             solReached = gen.net.evalCorrect(self.testData,self.testLabels)
