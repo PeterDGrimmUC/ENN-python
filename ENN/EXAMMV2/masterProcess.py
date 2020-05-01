@@ -860,7 +860,7 @@ class masterProcess:
                 speciesList.append([])
                 speciesList[-1].append(currGenome)
         return speciesList
-def speciateNEAT(self, genomeList,cutoff,c1,c2,c3, speciesStartList = []):
+    def speciateNEAT(self, genomeList,cutoff,c1,c2,c3, speciesStartList = []):
         if speciesStartList is []:
             speciesList = [[genomeList[0]]]
             del genomeList[0]
