@@ -5,7 +5,7 @@ from multiprocessing import Process,Queue,cpu_count,Pipe
 from pathos.multiprocessing import ProcessingPool as Pool
 # This version trades computational complexity for space complexity, requires more space but less calculations
 # each genome node and connection contains all information needed to carry out mutations
-randomVal = lambda : rand.uniform(-.05,.05)/1000000
+randomVal = lambda : rand.uniform(-.5,.5)
 class masterProcess:
     def __init__(self, inputs,outputs):
         # inputs and outputs
@@ -23,11 +23,11 @@ class masterProcess:
         self.verbose = False
 
     # Getters and setters for global vars
-    def set_trainingData(self,trainingData,trainingLabels) -> None:
+    def set_trainingData(self,trainingData,trainingLabels):
         self.trainingData = trainingData
         self.trainingLabels = trainingLabels
 
-    def set_testData(self,testData,testLabels) -> None:
+    def set_testData(self,testData,testLabels):
         self.testData = testData
         self.testLabels = testLabels
 
@@ -263,6 +263,8 @@ class masterProcess:
     def pertrubNetwork(self,genomeIn,propToPertrub,amountToPerturb) -> None:
         connectionsToPurturb = math.floor(len(genomeIn.connectionGenes) * propToPertrub)
         nodesToPurturb = math.floor(len(genomeIn.nodeGenes) * propToPertrub)
+        nodesToReset = math.floor(len(genomeIn.nodeGenes) * .2)
+        connsToReset = math.floor(len(genomeIn.connectionGenes) * .2)
         if nodesToPurturb > 0:
             chosenNodes = rand.sample(genomeIn.nodeGenes,nodesToPurturb)
             for currNode in chosenNodes:
@@ -271,7 +273,14 @@ class masterProcess:
             chosenConns = rand.sample(genomeIn.connectionGenes, connectionsToPurturb)
             for currConn in chosenConns:
                 currConn.weight += amountToPerturb * self.randomVal()
-
+        if nodesToReset > 0:
+            chosenNodes = rand.sample(genomeIn.nodeGenes,nodesToReset)
+            for currNode in chosenNodes:
+                currNode.bias = self.randomVal()
+        if connsToReset > 0:
+            chosenConns = rand.sample(genomeIn.connectionGenes, connsToReset)
+            for currConn in chosenConns:
+                currConn.weight = self.randomVal()
     def randomMutation(self,genomeIn) -> None:
         if rand.random() < .2:
             self.pertrubNetwork(genomeIn, .2, .3)
@@ -334,25 +343,16 @@ class masterProcess:
         return trainingMultiplier
 
     def randomMutationNEAT(self,genomeIn,mutationMuliplier):
-        if rand.random() < .4 * mutationMuliplier :
-            self.pertrubNetwork(genomeIn, .2, .3)
-        if rand.random() < .3 * mutationMuliplier:
+        if rand.random() < 1:# * mutationMuliplier :
+            self.pertrubNetwork(genomeIn, .1, 2)
+        if rand.random() < .05:# * mutationMuliplier:
             self.addRandomConnection(genomeIn)
-        if rand.random() < .1 * mutationMuliplier:
-            self.addRandomNode(genomeIn)
-        if rand.random() < .05 * mutationMuliplier:
+        if rand.random() < .03:# * mutationMuliplier:
             self.splitRandomConnection(genomeIn)
-            self.findDisconnectedGenome(genomeIn)
-        if rand.random() <.1 * mutationMuliplier:
-            self.mergeNode(genomeIn)
-        if rand.random() < .2 * mutationMuliplier:
-            self.disableRandomNode(genomeIn)
-        if rand.random() < .3 * mutationMuliplier:
-            self.disableRandomConnection(genomeIn)
-        if rand.random() <.001 * mutationMuliplier:
-            self.enableRandomNode(genomeIn)
-        if rand.random() <.001 * mutationMuliplier:
+        if rand.random() <.03: # * mutationMuliplier:
             self.enableRandomConnection(genomeIn)
+        if rand.random() <.03: # * mutationMuliplier:
+            self.disableRandomConnection(genomeIn)
 
     def randomMutationVerify(self,genomeIn,mutationMuliplier):
         trainingMultiplier = .1
@@ -458,7 +458,8 @@ class masterProcess:
         nodeCoeff = (c1 * (numSameNodes)/(numSameNodes+numDiffNodes))
         connCoeff = (c2 * (numSameConns)/(numSameConns+numDiffConns))
         if (maxWDiff - minWDiff) != 0 and numWts != 0:
-            wtCoeff = (c3 * (1/(maxWDiff - minWDiff)*((wtDiff/numWts) - minWDiff)))
+            #wtCoeff = (c3 * (1/(maxWDiff - minWDiff)*((wtDiff/numWts) - minWDiff)))
+            wtCoeff = (c3 * wtDiff/numWts)
         else:
             wtCoeff = 1
         return nodeCoeff + connCoeff + wtCoeff
@@ -476,7 +477,109 @@ class masterProcess:
             cgCop.append(newConn)
         o = genome(self.get_genomeID(), self.inputs,self.outputs, nodeGenes = ngCop, connectionGenes=cgCop)
         return o
-
+    def mergeNEAT(self,genome1,genome2,pctWorseNodesToAdd):
+        if genome1 is genome2:
+            return self.cloneGenome(genome1)
+        # find more fit parent
+        (moreFitParent,lessFitParent) = (genome1,genome2) if genome1.fitness > genome2.fitness else (genome2,genome1)
+        # get all nodes and connections in both parents, associate in a tuple with whether or not it is the more fit genome
+        moreFitNodes = [(n, 0) for n in moreFitParent.nodeGenes if n.enabled == True]
+        lessFitNodes = [(n, 1) for n in lessFitParent.nodeGenes if n.enabled == True]
+        moreFitConns = [(n, 0) for n in moreFitParent.connectionGenes if n.enabled == True]
+        lessFitConns = [(n, 1) for n in lessFitParent.connectionGenes if n.enabled == True]
+        totalNodes = moreFitNodes + lessFitNodes
+        totalConns = moreFitConns + lessFitConns
+        # sort by node number and innovation number
+        totalNodes.sort(key= lambda x: x[0].nodeNum)
+        totalConns.sort(key= lambda x: x[0].innovNum)
+        outNodes = []
+        outConns = []
+        newNodeGenes = []
+        newConnGenes = []
+        nodeNums = []
+        # associate shared genes
+        for _,g in groupby(totalNodes, key = lambda x:x[0].nodeNum):
+            outNodes.append(list(g))
+        for _,g in groupby(totalConns, key = lambda x:x[0].innovNum):
+            outConns.append(list(g))
+        # perform merge operation on nodes
+        for subGroup in outNodes:
+            if len(subGroup) == 2:
+                # ndoe in both
+                if subGroup[0][1] == 0:
+                    if rand.random() > .1:
+                        newWt = subGroup[0][0].bias
+                    else:
+                        newWt = subGroup[1][0].bias
+                else:
+                    if rand.random() > .1:
+                        newWt = subGroup[1][0].bias
+                    else:
+                        newWt = subGroup[0][0].bias
+                newNode = node(subGroup[1][0].nodeNum, depth=subGroup[1][0].depth,bias=newWt,nodeType = subGroup[1][0].nodeType)
+                newNodeGenes.append(newNode)
+                nodeNums.append(newNode.nodeNum)
+            else:
+                if subGroup[0][1] == 0:
+                    newWt = subGroup[0][0].bias
+                    newNode = node(subGroup[0][0].nodeNum, depth=subGroup[0][0].depth,bias=newWt,nodeType = subGroup[0][0].nodeType)
+                    newNodeGenes.append(newNode)
+                    nodeNums.append(newNode.nodeNum)
+                elif rand.random() < pctWorseNodesToAdd:
+                    newWt = subGroup[0][0].bias
+                    newNode = node(subGroup[0][0].nodeNum, depth=subGroup[0][0].depth,bias=newWt,nodeType = subGroup[0][0].nodeType)
+                    newNodeGenes.append(newNode)
+                    nodeNums.append(newNode.nodeNum)
+        refDict = dict([(j,i) for i,j in enumerate(nodeNums)])
+        # perform merge operation on connections
+        for subGroup in outConns:
+            if len(subGroup) == 2:
+                # connection in both
+                if subGroup[0][1] == 0:
+                    if rand.random() > .1:
+                        newWt = subGroup[0][0].weight
+                    else:
+                        newWt = subGroup[1][0].weight
+                else:
+                    if rand.random() > .1:
+                        newWt = subGroup[1][0].weight
+                    else:
+                        newWt = subGroup[0][0].weight
+                inputNode = newNodeGenes[refDict[subGroup[0][0].inputNode.nodeNum]]
+                outputNode = newNodeGenes[refDict[subGroup[0][0].outputNode.nodeNum]]
+                newConn = connection(subGroup[0][0].innovNum,inputNode,outputNode,weight=newWt)
+                inputNode.outputConnections.append(newConn)
+                outputNode.inputConnections.append(newConn)
+                newConnGenes.append(newConn)
+            elif subGroup[0][1] == 0:
+                # connection in better genome
+                inputNode = newNodeGenes[refDict[subGroup[0][0].inputNode.nodeNum]]
+                outputNode = newNodeGenes[refDict[subGroup[0][0].outputNode.nodeNum]]
+                newConn = connection(subGroup[0][0].innovNum,inputNode,outputNode,weight=subGroup[0][0].weight)
+                inputNode.outputConnections.append(newConn)
+                outputNode.inputConnections.append(newConn)
+                newConnGenes.append(newConn)
+            else:
+                #connection in worse genome
+                # check if node was selected
+                if subGroup[0][0].inputNode.nodeNum in nodeNums and subGroup[0][0].outputNode.nodeNum in nodeNums:
+                    inputNode = newNodeGenes[refDict[subGroup[0][0].inputNode.nodeNum]]
+                    outputNode = newNodeGenes[refDict[subGroup[0][0].outputNode.nodeNum]]
+                    newConn = connection(subGroup[0][0].innovNum,inputNode,outputNode,weight=subGroup[0][0].weight)
+                    inputNode.outputConnections.append(newConn)
+                    outputNode.inputConnections.append(newConn)
+                    newConnGenes.append(newConn)
+        # find dead nodes
+        # forward pass
+        #genome(self.get_genomeID(),self.inputs,self.outputs, nodeGenes = newNodeGenes,connectionGenes = newConnGenes).printTopology()
+        # find nodes with no input or output connections, recursively cycle through connected nodes and delete connections
+        for ng in newNodeGenes:
+            self.recursiveDelete(ng, newConnGenes)
+        newNodeGenes = [n for n in newNodeGenes if (len(n.outputConnections) > 0 or n.nodeType == nodeTypes.OUTPUT) and (len(n.inputConnections) > 0 or n.nodeType == nodeTypes.INPUT)]
+        newGenome = genome(self.get_genomeID(),self.inputs,self.outputs, nodeGenes = newNodeGenes,connectionGenes = newConnGenes)
+        # fix connections
+        newGenome.printTopology()
+        return newGenome
     def mergeMethod2(self,genome1,genome2,pctWorseNodesToAdd):
         if genome1 is genome2:
             return self.cloneGenome(genome1)
@@ -809,7 +912,6 @@ class masterProcess:
         for n in genomeIn.nodeGenes:
             for c in n.outputConnections:
                 if c not in genomeIn.connectionGenes:
-                    print('bruhh')
                     print(c)
                     return True
 
@@ -822,6 +924,8 @@ class masterProcess:
         cutoff = c0
         mutationMult = np.ones(initPop)
         specTarget = math.floor((initPop) * speciationTarget)
+        meanFitnessArr = []
+        maxFitnessArr = []
         for _ in range(0,initPop):
             instances.append(self.newInitGenome())
         for currGeneration in range(0,maxGens):
@@ -839,37 +943,46 @@ class masterProcess:
             (specFitnessArr,speciesList) = self.intraSpeciesSelectionFeedback(speciesList, topNSpecRat)
             #(instances,speciesStartList,mutationMult) = self.repopulateFeedback(speciesList,specFitnessArr,initPop)
             (instances,speciesStartList,mutationMult) = self.repopulateFeedback(speciesList,specFitnessArr,initPop)
-            #print(cutoff)
-            #print(cutoff)
             print(specFitnessArr)
-            #print(cutoff)
+            maxFitnessArr.append(np.max(specFitnessArr))
+            meanFitnessArr.append(np.mean(specFitnessArr))
         self.bestGenome = max(instances + [n for sub in speciesList for n in sub],key= lambda x:x.fitness)
+        return (maxFitnessArr, meanFitnessArr)
         #best.printTopology()
-    def evolveNEAT(self, initPop, c1,c2,c3,c0,maxGens,e0,topNrat, topNSpecRat):
+    def evolveNEAT(self, initPop, c1,c2,c3,c0,maxGens,topNrat, topNSpecRat):
         instances = []
         epochMults = []
         speciesStartList = []
         cutoff = c0
+        meanFitnessArr = []
+        maxFitnessArr = []
+        mutationMult = np.ones(initPop)
+        solFound = False
+        solGen = -1
         for _ in range(0,initPop):
             instances.append(self.newInitGenome())
         for currGeneration in range(0,maxGens):
             for ind,genin in enumerate(instances):
-                self.randomMutationNEAT(genin)
+                self.randomMutationNEAT(genin,mutationMult[ind])
             speciesList = self.speciate(instances, cutoff, c1,c2,c3, speciesStartList = speciesStartList)
             for ind,species in enumerate(speciesList):
                 print("evaluating species %i"%(ind))
-                self.evaluateSpeciesNEAT(species, )
+                solOut = self.evaluateSpeciesNEAT(species)
+                if solOut and not solFound:
+                    solGen = currGeneration
+                    solFound = True
                 self.interSpeciesSelectionFeedback(species, topNrat)
             (specFitnessArr,speciesList) = self.intraSpeciesSelectionFeedback(speciesList, topNSpecRat)
             #(instances,speciesStartList,mutationMult) = self.repopulateFeedback(speciesList,specFitnessArr,initPop)
-            (instances,speciesStartList,mutationMult) = self.repopulateFeedback(speciesList,specFitnessArr,initPop)
+            (instances,speciesStartList,mutationMult) = self.repopulateNEAT(speciesList,specFitnessArr,initPop)
             #print(cutoff)
             #print(cutoff)
             print(specFitnessArr)
+            maxFitnessArr.append(np.max(specFitnessArr))
+            meanFitnessArr.append(np.mean(specFitnessArr))
             #print(cutoff)
-        p.close()
-        p.join()
         self.bestGenome = max(instances + [n for sub in speciesList for n in sub],key= lambda x:x.fitness)
+        return (maxFitnessArr, meanFitnessArr,solGen)
     def evolveFeedbackParallel(self, initPop, c1,c2,c3,c0, maxGens, e0, l0,speciationTarget,dSpec,topNrat,topNSpecRat):
         # experimental idea
         # create instances and mutate
@@ -880,6 +993,12 @@ class masterProcess:
         mutationMult = np.ones(initPop)
         specTarget = math.floor((initPop) * speciationTarget)
         p = Pool()
+        solFound = False
+        solGen = -1
+        numNodes = -1
+        numConns = -1
+        meanFitnessArr = []
+        maxFitnessArr = []
         for _ in range(0,initPop):
             instances.append(self.newInitGenome())
         for currGeneration in range(0,maxGens):
@@ -899,18 +1018,76 @@ class masterProcess:
             for ind,species in enumerate(speciesList):
                 print("evaluating species %i"%(ind))
                 self.interSpeciesSelectionFeedback(species, topNrat)
+                for gen in species:
+                    g = gen.net.evalCorrect(self.trainingData,self.trainingLabels)
+                    if g and not solFound:
+                        solFound = True
+                        solGen = currGeneration
+                        numNodes = len([n for n in gen.nodeGenes if n.enabled == True])
+                        numConns = len([n for n in gen.connectionGenes if n.enabled == True])
             (specFitnessArr,speciesList) = self.intraSpeciesSelectionFeedback(speciesList, topNSpecRat)
             #(instances,speciesStartList,mutationMult) = self.repopulateFeedback(speciesList,specFitnessArr,initPop)
             (instances,speciesStartList,mutationMult) = self.repopulateFeedback(speciesList,specFitnessArr,initPop)
             #print(cutoff)
             #print(cutoff)
+            maxFitnessArr.append(np.max(specFitnessArr))
+            meanFitnessArr.append(np.mean(specFitnessArr))
+            print(specFitnessArr)
+            #print(cutoff)
+        #p.close()
+        #p.join()
+        self.bestGenome = max(instances + [n for sub in speciesList for n in sub],key= lambda x:x.fitness)
+        #best.printTopology()
+        return (maxFitnessArr, meanFitnessArr,solGen,numNodes,numConns)
+    def evolveNoFeedbackParallel(self, initPop, c1,c2,c3,c0, maxGens, e0, l0,speciationTarget,dSpec,topNrat,topNSpecRat):
+        # experimental idea
+        # create instances and mutate
+        instances = []
+        epochMults = []
+        speciesStartList = []
+        cutoff = c0
+        mutationMult = np.ones(initPop)
+        specTarget = math.floor((initPop) * speciationTarget)
+        p = Pool()
+        solFound = False
+        solGen = -1
+        meanFitnessArr = []
+        maxFitnessArr = []
+        for _ in range(0,initPop):
+            instances.append(self.newInitGenome())
+        for currGeneration in range(0,maxGens):
+            for ind,genin in enumerate(instances):
+                genin.epochMult = self.randomMutationSpecial(genin, mutationMult[ind])
+            speciesList = self.speciate(instances, cutoff, c1,c2,c3, speciesStartList = speciesStartList)
+            print("current generation : %i, Number of instances : %i, number of species: %i "%(currGeneration, len(instances),len(speciesList)))
+            parallelStruct = []
+            for species in speciesList:
+                parallelStruct.append((species, e0, l0))
+            newSpeciesList = []
+            speciesList = p.map(self.evaluateSpeciesParallel, parallelStruct)
+            #pdb.set_trace()
+            for ind,species in enumerate(speciesList):
+                print("evaluating species %i"%(ind))
+                self.interSpeciesSelectionFeedback(species, topNrat)
+                for gen in species:
+                    g = gen.net.evalCorrect(self.trainingData,self.trainingLabels)
+                    if g and not solFound:
+                        solFound = True
+                        solGen = currGeneration
+            (specFitnessArr,speciesList) = self.intraSpeciesSelectionFeedback(speciesList, topNSpecRat)
+            #(instances,speciesStartList,mutationMult) = self.repopulateFeedback(speciesList,specFitnessArr,initPop)
+            (instances,speciesStartList,_) = self.repopulateFeedback(speciesList,specFitnessArr,initPop)
+            #print(cutoff)
+            #print(cutoff)
+            maxFitnessArr.append(np.max(specFitnessArr))
+            meanFitnessArr.append(np.mean(specFitnessArr))
             print(specFitnessArr)
             #print(cutoff)
         p.close()
         p.join()
         self.bestGenome = max(instances + [n for sub in speciesList for n in sub],key= lambda x:x.fitness)
         #best.printTopology()
-
+        return (maxFitnessArr, meanFitnessArr,solGen)
     def evolveFeedbackParallel2(self, initPop, c1,c2,c3,c0, maxGens, e0, l0,speciationTarget,dSpec,topNrat,topNSpecRat):
         # experimental idea
         # create instances and mutate
@@ -948,16 +1125,20 @@ class masterProcess:
             gen.train(self.trainingData, self.trainingLabels,math.floor(e0*gen.epochMult),lr)
             gen.getFitness(self.testData,self.testLabels)
             gen.fitness = gen.fitness/elemInSpecies
+            solReached = gen.net.evalCorrect(self.testData,self.testLabels)
         epochMults = []
+        return solReached
     def evaluateSpeciesNEAT(self,species):
         elemInSpecies = len(species)
         netArr = []
         for ind,gen in enumerate(species):
             self.fixGenome(gen)
             gen.transcodeNetwork()
+            gen.train(self.trainingData, self.trainingLabels,20,.2)
             gen.getFitness(self.testData,self.testLabels)
             gen.fitness = gen.fitness/elemInSpecies
-            gen.evalCorrect(self.testData,self.testLabels)
+            solReached = gen.net.evalCorrect(self.testData,self.testLabels)
+        return solReached
     def evaluateSpeciesFeedbackParallel(self, species, e0, lr):
         elemInSpecies = len(species)
         netArr = []
@@ -1031,6 +1212,25 @@ class masterProcess:
             elif len(speciesChoice[0]) > 1:
                 newGenomes = rand.sample(speciesChoice[0],2)
                 newGenome = self.mergeMethod2((newGenomes[0]),(newGenomes[1]),.5)
+                outputInstances.append(newGenome)
+                mutationMult.append(refDict[speciesChoice[0][0].ID])
+        return (outputInstances, speciesLeaders,mutationMult)
+    def repopulateNEAT(self, speciesList,specFitnessArr,targetPop):
+        #normalize relative fitness to 1 and use as a probability distribution for repopulation
+        probDist = specFitnessArr/np.linalg.norm(specFitnessArr)
+        mutationMult = []
+        refDict = dict(zip([n[0].ID for n in speciesList],probDist))
+        speciesLeaders = [[max(n,key=lambda x:x.fitness)] for n in speciesList]
+        outputInstances = []
+        while len(outputInstances) < targetPop-len(speciesLeaders):
+            speciesChoice = rand.choices(speciesList, weights=probDist.tolist())
+            if len(speciesChoice[0]) == 1:
+                newGenome = self.mergeNEAT(speciesChoice[0][0],speciesChoice[0][0],0)
+                outputInstances.append(newGenome)
+                mutationMult.append(refDict[speciesChoice[0][0].ID])
+            elif len(speciesChoice[0]) > 1:
+                newGenomes = rand.sample(speciesChoice[0],2)
+                newGenome = self.mergeNEAT((newGenomes[0]),(newGenomes[1]),.25)
                 outputInstances.append(newGenome)
                 mutationMult.append(refDict[speciesChoice[0][0].ID])
         return (outputInstances, speciesLeaders,mutationMult)

@@ -1,5 +1,4 @@
 from ENN.EXAMMV2.network import *
-from ENN.EXAMMV2.networkParallel import * 
 import math
 import numpy as np
 import random as rand
@@ -10,7 +9,7 @@ import threading
 import multiprocessing
 import dill
 
-randVal = lambda : rand.uniform(-.5,.5)/10000
+randVal = lambda : rand.uniform(-.5,.5)
 # Enums
 class activationFuncs(Enum):
     SIGMOID=lambda x: 1/(1+math.exp(-x))
@@ -259,7 +258,7 @@ class genome:
         self.net.parseGenome()
 
     def transcodeNetworkParallel(self):
-        net = networkParallel(self.inputs,self.outputs)
+        net = network(self.inputs,self.outputs)
         net.parseGenome(self)
         return net
 

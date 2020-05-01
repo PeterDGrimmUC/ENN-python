@@ -12,7 +12,7 @@ class network:
         self.dL_Do = lambda o,t: o-t # MSE derivative
         #self.dPhi_dnet = lambda o: 1-np.square(o) #htan deriv
         self.dPhi_dnet = lambda o: np.multiply(o,(1-o)) # logistic deriv
-        self.complexityDependence = .2
+        self.complexityDependence = .05
 
     def parseGenome(self):
         # get enabled nodes and connections
@@ -82,7 +82,7 @@ class network:
         return self.MSE
 
     def evalutateFitness(self):
-        return 1/self.MSE - self.complexityDependence*(1/self.MSE * 1/self.getComplexity())
+        return 1/(self.MSE)- self.complexityDependence*(1/self.MSE * self.getComplexity())
     def getComplexity(self):
         c =  len(self.connections)/(self.inputs * self.outputs)
         return c
@@ -90,15 +90,15 @@ class network:
         MSE = np.zeros(len(inputVec))
         corr = 0
         dPt = 0
+        #pdb.set_trace()
         for ind,data in enumerate(inputVec):
             output = self.feedForward(data)
             corr = 0
             for ind2,bit in enumerate(output):
-                if bit > .5 and outputVec[ind2] > .5 or bit < .5 and outputVec[ind2] < .5:
+                if bit > .5 and outputVec[ind][ind2] > .5 or bit < .5 and outputVec[ind][ind2] < .5:
                     corr += 1
             if corr == len(outputVec[ind]):
                 dPt += 1
-        pdb.set_trace()
         if dPt == len(outputVec):
             return True
         else:
