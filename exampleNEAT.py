@@ -16,11 +16,11 @@ trainingLabels = [[0],[1],[1],[0]]
 master.set_trainingData(trainingData,trainingLabels)
 master.set_testData(trainingData,trainingLabels)
 # set model parameters
-initpop = 500
+initpop = 150
 c1 = 1
 c2 = 1
 c3 = .4
-cutoff = 2
+cutoff = 2.3
 maxGens = 200
 topNrat = .1
 topNSpecRat = .9
